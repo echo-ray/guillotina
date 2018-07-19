@@ -451,9 +451,12 @@ class PostgresqlStorage(BaseStorage):
 
         await self.initialize_tid_statements()
 
-    async def restart_connection(self):
+    async def restart_connection(self, timeout=0.1):
         log.error('Connection potentially lost to pg, restarting')
-        await self._pool.close()
+        try:
+            await asyncio.wait_for(self._pool.close(), timeout)
+        except asyncio.TimeoutError:
+            pass
         self._pool.terminate()
         # re-bind, throw conflict error so the request is restarted...
         self._pool = await asyncpg.create_pool(
