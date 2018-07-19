@@ -568,7 +568,8 @@ ALTER TABLE blobs ALTER COLUMN zoid TYPE varchar({MAX_OID_LENGTH})''')
 
     async def close(self, con):
         try:
-            await shield(self._pool.release(con, timeout=1))
+            await shield(
+                asyncio.wait_for(self._pool.release(con, timeout=1), 1))
         except (asyncio.CancelledError, RuntimeError, asyncio.TimeoutError,
                 asyncpg.exceptions.ConnectionDoesNotExistError):
             pass
